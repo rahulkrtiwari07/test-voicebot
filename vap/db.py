@@ -234,6 +234,10 @@ def init_engine(url: str | None = None):
     """(Re)binds the module to a database. Called on API startup and by tests."""
     global _engine, _SessionLocal
     url = url or settings.database_url()
+    # SQLAlchemy 2.1 maps a bare postgresql:// URL to the psycopg (v3)
+    # driver; this project ships psycopg2-binary, so name it explicitly.
+    if url.startswith(("postgresql://", "postgres://")):
+        url = "postgresql+psycopg2://" + url.split("://", 1)[1]
     kwargs = {"pool_pre_ping": True}
     if url.startswith("sqlite"):
         kwargs["connect_args"] = {"check_same_thread": False}
