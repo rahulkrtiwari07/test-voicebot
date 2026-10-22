@@ -1,0 +1,11 @@
+.env
+.env.local
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.db
+worker_failed_reports.jsonl
+*.egg-info/
+KMS/

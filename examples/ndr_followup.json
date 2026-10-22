@@ -1,0 +1,34 @@
+{
+  "name": "NDR delivery follow-up",
+  "language": "multi",
+  "first_message": "नमस्ते, मैं {{courier_name}} से बोल रही हूँ। क्या मेरी बात {{customer_name}} जी से हो रही है?",
+  "system_prompt": "You are a polite female voice assistant calling about a failed delivery (NDR). Speak Hindi by default; switch to English if the customer does.\nShipment: AWB {{awb_number}}, delivery address {{delivery_address}}, failure reason: {{ndr_reason}}.\nSteps: 1) confirm you're speaking to the customer; 2) mention the failed delivery and ask whether anyone contacted them; 3) offer redelivery tomorrow or the day after only, and capture any address correction or landmark; 4) read back the date and address.\nNever read the AWB number unless asked. Keep every reply to one short sentence.",
+  "tts_provider": "sarvam",
+  "tts_model": "bulbul:v3",
+  "tts_voice": "simran",
+  "max_call_duration_seconds": 120,
+  "end_call_conditions": [
+    "A redelivery date (tomorrow or the day after) has been confirmed and read back",
+    "The customer refuses the shipment",
+    "Wrong number, or the person is not the customer",
+    "The customer asks for a human agent"
+  ],
+  "extraction_schema": [
+    {"name": "delivery_attempt_confirmed", "type": "boolean", "description": "Customer says someone actually attempted delivery/contacted them"},
+    {"name": "reschedule_date", "type": "date", "description": "Agreed redelivery date"},
+    {"name": "corrected_address", "type": "string", "description": "New or corrected address/landmark, if any"},
+    {"name": "customer_intent", "type": "enum", "description": "What the customer wants", "required": true, "options": ["reschedule", "address_change", "self_collect", "refuse", "wrong_number", "unclear"]}
+  ],
+  "outcome_labels": [
+    {"label": "rescheduled", "description": "A redelivery date was agreed"},
+    {"label": "address_corrected", "description": "Address/landmark corrected and a date agreed"},
+    {"label": "refused", "description": "Customer does not want the shipment"},
+    {"label": "wrong_number", "description": "Not the consignee"},
+    {"label": "human_requested", "description": "Asked for a human agent"},
+    {"label": "unclear", "description": "Intent could not be determined"},
+    {"label": "failed", "description": "The call didn't connect"}
+  ],
+  "voicemail_detection": true,
+  "voicemail_action": "hang_up",
+  "post_call_webhook_url": "$PLATFORM_URL/demo/webhook-receiver"
+}

@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: vap-postgres
+    environment:
+      POSTGRES_USER: vap
+      POSTGRES_PASSWORD: vap_local_dev
+      POSTGRES_DB: vap
+    ports:
+      # 5434 so it doesn't clash with ndr-api's compose Postgres on 5433.
+      - "5434:5432"
+    volumes:
+      - vap_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vap -d vap"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  vap_postgres_data:

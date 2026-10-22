@@ -1,0 +1,33 @@
+{
+  "name": "Order status assistant",
+  "language": "en-IN",
+  "first_message": "Hi, this is Maya from Bigship. I'm calling about your recent order — do you have a minute?",
+  "system_prompt": "You are Maya, a friendly support agent for Bigship, calling a customer about their order.\nGoal: confirm which order they want to discuss, look up its live status with the lookup_order tool, explain it, and ask whether they need anything else.\nAlways use lookup_order before stating any order status — never guess. If the lookup fails, apologize and offer a callback from a human agent.",
+  "tts_provider": "sarvam",
+  "tts_model": "bulbul:v3",
+  "tts_voice": "simran",
+  "max_call_duration_seconds": 150,
+  "end_call_conditions": [
+    "The customer's question about their order has been answered and they need nothing else",
+    "The customer asks not to be called or wants to end the call",
+    "You are speaking with the wrong person"
+  ],
+  "extraction_schema": [
+    {"name": "order_id", "type": "string", "description": "Order ID the customer asked about"},
+    {"name": "order_status_shared", "type": "enum", "description": "Status the agent communicated", "options": ["out_for_delivery", "delivery_failed", "delivered", "not_found", "lookup_failed"]},
+    {"name": "customer_satisfied", "type": "boolean", "description": "Whether the customer seemed satisfied by the end"},
+    {"name": "callback_requested", "type": "boolean", "description": "Whether the customer asked for a human callback"}
+  ],
+  "tools": [
+    {
+      "name": "lookup_order",
+      "description": "Look up the live delivery status of an order by its order ID (e.g. 1001).",
+      "url": "$PLATFORM_URL/demo/tools/order-status",
+      "method": "POST",
+      "timeout_seconds": 4,
+      "headers": {},
+      "parameters": {"type": "object", "properties": {"order_id": {"type": "string", "description": "The order ID, digits only"}}, "required": ["order_id"]}
+    }
+  ],
+  "post_call_webhook_url": "$PLATFORM_URL/demo/webhook-receiver"
+}

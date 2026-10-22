@@ -1,0 +1,138 @@
+{
+  "name": "Cynet Health reference check",
+  "language": "en-US",
+  "first_message": "Hi {{reference_name}}, this is Ava calling on behalf of Cynet Health. I'm calling for a quick reference check on {{get_candidate_details.name}}, who listed you as a reference. Do you have about five minutes to talk?",
+  "system_prompt": "You are Ava, a friendly, professional reference-check specialist calling on behalf of Cynet Health, a healthcare staffing company. You are speaking with {{reference_name}}, who was listed as a reference by a candidate.\n\nThe candidate's details were looked up when the call started (see \"Data fetched at call start\"). Refer to the candidate by their first name. Do NOT read out the claimed employer dates before asking — the reference must state dates in their own words, so they can be compared with the claim later.\n\nYour opening line already introduced you and asked whether they have about five minutes.\n- If they agree, ask these questions ONE AT A TIME, in this order, waiting for each answer:\n  1. Did you work with the candidate, and in what capacity?\n  2. What were their approximate employment dates and role?\n  3. Would you rehire them? Why or why not?\n  4. What are their main strengths?\n  5. Are there any areas for improvement?\n  6. On a scale of 1 to 5, how would you rate them overall?\n- If the reference already answered a later question along the way, don't ask it again — just move on to the next unanswered one.\n- Acknowledge each answer in a few words before the next question. Don't ask follow-ups beyond one short clarification when an answer is unclear.\n- For question 6, if they give something other than a whole number from 1 to 5 (e.g. \"four and a half\", \"pretty good\"), ask once for a whole number from 1 to 5. If they still won't give one, move on.\n- If they're busy or it's a bad time: offer to call back, ask what day and time works best, repeat it back to confirm, then thank them and end the call.\n- If they decline to give a reference: thank them politely and end the call.\n- If they say they're not {{reference_name}}, or they don't know the candidate: apologize for the confusion and end the call.\n- After question 6, thank them for their time and end the call.\n\nConfidentiality: never share the candidate's claimed dates, other references' feedback, or anything beyond the candidate's name and the role they applied for.",
+  "llm_provider": "google",
+  "llm_model": "gemini-2.5-flash",
+  "llm_temperature": 0.3,
+  "tts_provider": "sarvam",
+  "tts_model": "bulbul:v3",
+  "tts_voice": "priya",
+  "stt_model": "nova-3",
+  "max_call_duration_seconds": 420,
+  "end_call_conditions": [
+    "All six questions have been asked and answered (or the reference declined to answer some of them)",
+    "The reference is busy and a callback time has been agreed and confirmed",
+    "The reference declines to give a reference",
+    "The person is not {{reference_name}} or does not know the candidate"
+  ],
+  "extraction_schema": [
+    {
+      "name": "reference_confirmed",
+      "type": "boolean",
+      "description": "true if the reference agreed to speak and give a reference on this call; false if they declined, were busy/asked for a callback, or were the wrong person",
+      "required": true
+    },
+    {
+      "name": "relationship",
+      "type": "string",
+      "description": "How the reference worked with the candidate, e.g. supervisor, peer, charge nurse"
+    },
+    {
+      "name": "employment_dates",
+      "type": "string",
+      "description": "Approximate employment dates as stated by the reference, in their words"
+    },
+    {
+      "name": "dates_match_claim",
+      "type": "boolean",
+      "description": "Whether the dates the reference stated broadly match (within about 3 months) the claimed_start/claimed_end returned by get_candidate_details. null if the reference gave no dates"
+    },
+    {
+      "name": "would_rehire",
+      "type": "enum",
+      "options": [
+        "yes",
+        "no",
+        "unsure"
+      ],
+      "description": "Whether the reference would rehire the candidate"
+    },
+    {
+      "name": "strengths",
+      "type": "string[]",
+      "description": "Main strengths mentioned, each as a short phrase"
+    },
+    {
+      "name": "improvements",
+      "type": "string[]",
+      "description": "Areas for improvement mentioned, each as a short phrase"
+    },
+    {
+      "name": "rating",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Overall rating from 1 to 5 as a whole number; null if not given"
+    },
+    {
+      "name": "callback_requested",
+      "type": "boolean",
+      "description": "The reference asked to be called back at another time",
+      "required": true
+    },
+    {
+      "name": "callback_time",
+      "type": "string",
+      "description": "The preferred callback day/time as stated; null if no callback was requested"
+    }
+  ],
+  "outcome_labels": [
+    {
+      "label": "completed",
+      "description": "The reference agreed and answered the reference questions"
+    },
+    {
+      "label": "callback_requested",
+      "description": "The reference was busy and asked to be called back"
+    },
+    {
+      "label": "declined",
+      "description": "The reference declined to give a reference"
+    },
+    {
+      "label": "wrong_number",
+      "description": "Not the reference, or they don't know the candidate"
+    },
+    {
+      "label": "voicemail",
+      "description": "Reached voicemail or an answering machine"
+    },
+    {
+      "label": "failed",
+      "description": "The call didn't connect or ended before anything useful happened"
+    }
+  ],
+  "tools": [
+    {
+      "name": "get_candidate_details",
+      "description": "Look up the candidate being referenced: name, role, employer, and claimed employment start/end.",
+      "url": "$PLATFORM_URL/demo/tools/candidate-details",
+      "method": "POST",
+      "timeout_seconds": 4,
+      "headers": {},
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "description": "Candidate ID, e.g. C-1001"
+          }
+        },
+        "required": [
+          "candidate_id"
+        ]
+      },
+      "run_at_start": true,
+      "start_arguments": {
+        "candidate_id": "{{candidate_id}}"
+      }
+    }
+  ],
+  "voicemail_detection": true,
+  "voicemail_action": "leave_message",
+  "voicemail_message": "Hi {{reference_name}}, this is Ava from Cynet Health calling for a reference check on {{get_candidate_details.name}}. We'll try you again later. Thank you!",
+  "post_call_webhook_url": "$PLATFORM_URL/demo/webhook-receiver",
+  "post_call_webhook_secret": "demo-secret"
+}

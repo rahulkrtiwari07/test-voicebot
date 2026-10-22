@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice Agent Platform</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.15.6/dist/livekit-client.umd.js" defer></script>
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/agents">Voice Agent Platform</a>
+    <nav>
+      <a href="#/agents" data-nav="agents">Agents</a>
+      <a href="#/calls" data-nav="calls">Call log</a>
+      <a href="#/campaigns" data-nav="campaigns">Campaigns</a>
+      <a href="#/webhooks" data-nav="webhooks">Webhook inbox</a>
+    </nav>
+    <span id="telephony-badge" class="badge"></span>
+  </header>
+  <main id="app"><p class="muted">Loading…</p></main>
+  <div id="modal-root"></div>
+  <div id="toast" class="toast" hidden></div>
+</body>
+</html>
