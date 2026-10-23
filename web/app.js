@@ -634,6 +634,7 @@ async function callDetailPage(callId) {
     <div class="page-head"><a href="#/calls">← Call log</a><h1>${esc(c.agent_name)}</h1>${statusBadge(c.status)}
       ${live ? `<span class="muted"><span class="live-dot"></span>live — refreshing</span>` : ""}
       <div class="spacer"></div>
+      ${live ? "" : `<a class="btn" href="/api/calls/${esc(c.id)}/export" download title="Transcript, extraction, tool calls and webhook payload">Download JSON</a>`}
       ${live ? `<button class="btn danger" id="d-hangup">Hang up</button>` : ""}
       ${c.postcall_status === "failed" ? `<button class="btn" id="d-reprocess">Retry post-call processing</button>` : ""}
     </div>

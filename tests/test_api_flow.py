@@ -164,6 +164,16 @@ def test_full_call_flow_is_idempotent(client, fake_dispatch, fake_llm, receiver)
     body = json.loads(received[0]["body"])
     assert body["event_id"] == delivery["event_id"]
     assert body["outcome"] == "goal_achieved" and len(body["transcript"]) == 5
+    # call detail exposes the exact payload that was sent
+    assert delivery["payload"] == body
+
+    # export: the whole record as a downloadable JSON file
+    export = client.get(f"/api/calls/{call_id}/export")
+    assert export.headers["content-disposition"] == f'attachment; filename="call-{call_id}.json"'
+    record = export.json()
+    assert record["extracted_data"] == detail["extracted_data"] and len(record["turns"]) == 5
+    assert record["webhook_deliveries"][0]["payload"] == body
+    assert client.get("/api/calls/nope/export").status_code == 404
 
     # Manual resend: still the same event, not a new one
     client.post(f"/api/webhook-deliveries/{delivery['id']}/resend")

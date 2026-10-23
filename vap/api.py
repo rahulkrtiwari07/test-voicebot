@@ -15,7 +15,7 @@ import time
 from pathlib import Path
 
 from fastapi import FastAPI, Header, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from sqlalchemy import func, select
@@ -278,10 +278,24 @@ def get_call(call_id: str):
                     "last_status_code": w.last_status_code,
                     "last_error": w.last_error,
                     "delivered_at": w.delivered_at,
+                    # The exact body sent (or to be sent) to the receiver
+                    "payload": json.loads(w.payload),
                 }
                 for w in c.webhook_deliveries
             ],
         }
+
+
+@app.get("/api/calls/{call_id}/export")
+def export_call(call_id: str):
+    """The full call record (transcript, extraction, tool calls, webhook
+    payload) as a downloadable JSON file."""
+    record = get_call(call_id)
+    return Response(
+        content=json.dumps(record, indent=2, ensure_ascii=False),
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="call-{call_id}.json"'},
+    )
 
 
 @app.post("/api/calls/{call_id}/reprocess")
