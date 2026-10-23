@@ -133,7 +133,7 @@ def fake_dispatch(monkeypatch):
 
 def test_templates_and_mock_candidate_tool(client):
     templates = {t["id"]: t for t in client.get("/api/templates").json()}
-    assert {"cynet_reference_check", "order_status", "ndr_followup"} <= set(templates)
+    assert set(templates) == {"cynet_reference_check"}
     tool_url = templates["cynet_reference_check"]["config"]["tools"][0]["url"]
     assert tool_url == "http://testserver/demo/tools/candidate-details"
     for t in templates.values():
